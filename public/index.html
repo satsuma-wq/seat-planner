@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>組織編成 - コンサルティング事業部</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    background: #f0f2f5;
+    min-height: 100vh;
+  }
+
+  .header {
+    background: #1e293b;
+    color: #fff;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header h1 { font-size: 1.1rem; font-weight: 600; }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .board {
+    display: flex;
+    gap: 16px;
+    padding: 24px;
+    overflow-x: auto;
+    min-height: calc(100vh - 52px);
+    align-items: flex-start;
+  }
+
+  /* 部署カラム */
+  .dept-column {
+    background: #fff;
+    border-radius: 12px;
+    width: 240px;
+    min-width: 240px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s;
+  }
+  .dept-column.drag-over {
+    box-shadow: 0 0 0 2px #6366f1, 0 4px 16px rgba(99,102,241,0.2);
+  }
+
+  .dept-header {
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dept-color-bar {
+    width: 4px;
+    height: 32px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .dept-header-info { flex: 1; }
+  .dept-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .dept-sub {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+  .dept-count {
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .dept-body {
+    padding: 8px;
+    min-height: 60px;
+    flex: 1;
+  }
+  .dept-body.drag-over-body {
+    background: #f8fafc;
+  }
+
+  /* メンバーカード */
+  .member-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: grab;
+    transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+    user-select: none;
+  }
+  .member-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    border-color: #cbd5e1;
+  }
+  .member-card:active {
+    cursor: grabbing;
+  }
+  .member-card.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  .member-card.drag-ghost {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    transform: scale(1.03);
+    z-index: 9999;
+    position: fixed;
+    pointer-events: none;
+    width: 220px;
+  }
+  .member-card.just-moved {
+    animation: flashCard 0.6s ease;
+  }
+  @keyframes flashCard {
+    0% { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.25); }
+    100% { border-color: #e2e8f0; box-shadow: none; }
+  }
+
+  .member-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .member-info { flex: 1; min-width: 0; }
+  .member-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .member-role {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    margin-top: 1px;
+  }
+  .member-handle {
+    color: #cbd5e1;
+    font-size: 1rem;
+    flex-shrink: 0;
+    cursor: grab;
+  }
+
+  /* ドロップインジケーター */
+  .drop-indicator {
+    height: 3px;
+    background: #6366f1;
+    border-radius: 2px;
+    margin: 2px 0;
+    display: none;
+  }
+  .drop-indicator.show {
+    display: block;
+  }
+
+  /* 操作説明 */
+  .help-text {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: #e2e8f0;
+    font-size: 0.75rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+    opacity: 0.8;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>組織編成ボード - コンサルティング事業部</h1>
+  <div class="header-right">
+    <div class="status">
+      <div class="dot"></div>
+      <span id="onlineStatus">リアルタイム同期中</span>
+    </div>
+  </div>
+</div>
+
+<div class="board" id="board"></div>
+
+<div class="help-text">メンバーをドラッグして部署間を移動できます</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+
+const DEPARTMENTS = [
+  { id: 'asset',   name: 'アセットセールス', color: '#f97316', sub: '' },
+  { id: 'consul1', name: 'コンサル第一',     color: '#2563eb', sub: '' },
+  { id: 'consul2', name: 'コンサル第二',     color: '#16a34a', sub: '' },
+  { id: 'consul3', name: 'コンサル第三',     color: '#9333ea', sub: '仲介 / 買取くん' },
+  { id: 'baibai',  name: '売買管理',         color: '#0891b2', sub: '' },
+  { id: 'unassigned', name: '未配属',        color: '#94a3b8', sub: '' },
+];
+
+const INITIAL_MEMBERS = [
+  { id: 'igarashi',    name: '五十嵐',  role: 'Mgr',    dept: 'asset' },
+  { id: 'soga',        name: '曽我',    role: '',        dept: 'asset' },
+
+  { id: 'tsuruno',     name: '鶴野',    role: 'Mgr',    dept: 'consul1' },
+  { id: 'hayashi_kanan', name: '林花南', role: '',       dept: 'consul1' },
+  { id: 'moriwa',      name: '森岩',    role: '',        dept: 'consul1' },
+  { id: 'sato',        name: '佐藤',    role: '',        dept: 'consul1' },
+  { id: 'hashimoto',   name: '橋元',    role: '',        dept: 'consul1' },
+
+  { id: 'satsuma',     name: '薩摩',    role: 'Mgr',    dept: 'consul2' },
+  { id: 'yamashita',   name: '山下',    role: '',        dept: 'consul2' },
+  { id: 'kato',        name: '加藤',    role: '',        dept: 'consul2' },
+
+  { id: 'komatsu',     name: '小松',    role: 'Mgr',    dept: 'consul3' },
+  { id: 'anaguchi',    name: '穴口',    role: '',        dept: 'consul3' },
+  { id: 'nakano',      name: '中野',    role: '',        dept: 'consul3' },
+  { id: 'kimijima',    name: '君島',    role: '',        dept: 'consul3' },
+
+  { id: 'hayashi_mika', name: '林美香', role: '',        dept: 'baibai' },
+  { id: 'tsuchida',    name: '土田',    role: '',        dept: 'baibai' },
+  { id: 'hishida',     name: '菱田',    role: '',        dept: 'baibai' },
+  { id: 'yoshizawa',   name: '吉澤',    role: '',        dept: 'baibai' },
+  { id: 'makabe',      name: '眞壁',    role: '',        dept: 'baibai' },
+
+  { id: 'fujiyama',    name: '藤山',    role: '事業部長', dept: 'unassigned' },
+];
+
+let members = JSON.parse(JSON.stringify(INITIAL_MEMBERS));
+
+// ドラッグ状態
+let dragMemberId = null;
+let ghostEl = null;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+
+function render() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  DEPARTMENTS.forEach(dept => {
+    const deptMembers = members.filter(m => m.dept === dept.id);
+
+    const col = document.createElement('div');
+    col.className = 'dept-column';
+    col.dataset.deptId = dept.id;
+
+    col.innerHTML = `
+      <div class="dept-header">
+        <div class="dept-color-bar" style="background:${dept.color}"></div>
+        <div class="dept-header-info">
+          <div class="dept-name">${dept.name}</div>
+          ${dept.sub ? `<div class="dept-sub">${dept.sub}</div>` : ''}
+        </div>
+        <span class="dept-count">${deptMembers.length}</span>
+      </div>
+    `;
+
+    const body = document.createElement('div');
+    body.className = 'dept-body';
+    body.dataset.deptId = dept.id;
+
+    // ドロップゾーンイベント
+    body.addEventListener('dragover', onDragOver);
+    body.addEventListener('dragenter', onDragEnter);
+    body.addEventListener('dragleave', onDragLeave);
+    body.addEventListener('drop', onDrop);
+
+    deptMembers.forEach(m => {
+      const card = createMemberCard(m, dept);
+      body.appendChild(card);
+    });
+
+    if (deptMembers.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'padding:20px;text-align:center;color:#cbd5e1;font-size:0.78rem;';
+      empty.textContent = 'ここにドロップ';
+      body.appendChild(empty);
+    }
+
+    col.appendChild(body);
+    board.appendChild(col);
+  });
+}
+
+function createMemberCard(member, dept) {
+  const card = document.createElement('div');
+  card.className = 'member-card';
+  card.draggable = true;
+  card.dataset.memberId = member.id;
+
+  card.innerHTML = `
+    <div class="member-avatar" style="background:${dept.color}">${member.name.slice(0, 1)}</div>
+    <div class="member-info">
+      <div class="member-name">${member.name}</div>
+      ${member.role ? `<div class="member-role">${member.role}</div>` : ''}
+    </div>
+    <div class="member-handle">⠿</div>
+  `;
+
+  card.addEventListener('dragstart', (e) => {
+    dragMemberId = member.id;
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', member.id);
+
+    // ゴーストを少し透明に
+    setTimeout(() => card.style.opacity = '0.4', 0);
+  });
+
+  card.addEventListener('dragend', () => {
+    card.classList.remove('dragging');
+    card.style.opacity = '';
+    dragMemberId = null;
+    // ハイライト解除
+    document.querySelectorAll('.dept-column').forEach(c => c.classList.remove('drag-over'));
+    document.querySelectorAll('.dept-body').forEach(b => b.classList.remove('drag-over-body'));
+  });
+
+  return card;
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function onDragEnter(e) {
+  e.preventDefault();
+  const body = e.currentTarget;
+  const col = body.closest('.dept-column');
+  col.classList.add('drag-over');
+  body.classList.add('drag-over-body');
+}
+
+function onDragLeave(e) {
+  const body = e.currentTarget;
+  // relatedTarget がまだ body 内なら何もしない
+  if (body.contains(e.relatedTarget)) return;
+  const col = body.closest('.dept-column');
+  col.classList.remove('drag-over');
+  body.classList.remove('drag-over-body');
+}
+
+function onDrop(e) {
+  e.preventDefault();
+  const memberId = e.dataTransfer.getData('text/plain');
+  const targetDept = e.currentTarget.dataset.deptId;
+
+  const member = members.find(m => m.id === memberId);
+  if (member && member.dept !== targetDept) {
+    member.dept = targetDept;
+    render();
+    broadcastState();
+  }
+
+  document.querySelectorAll('.dept-column').forEach(c => c.classList.remove('drag-over'));
+  document.querySelectorAll('.dept-body').forEach(b => b.classList.remove('drag-over-body'));
+}
+
+// --- Socket.io ---
+
+function broadcastState() {
+  const state = members.map(m => ({ id: m.id, dept: m.dept }));
+  socket.emit('seat:move', state);
+}
+
+socket.on('state:init', (state) => applyState(state));
+socket.on('seat:update', (state) => {
+  applyState(state);
+  // アニメーション
+  setTimeout(() => {
+    document.querySelectorAll('.member-card').forEach(c => {
+      c.classList.add('just-moved');
+      setTimeout(() => c.classList.remove('just-moved'), 600);
+    });
+  }, 50);
+});
+
+function applyState(state) {
+  state.forEach(s => {
+    const member = members.find(m => m.id === s.id);
+    if (member) member.dept = s.dept;
+  });
+  render();
+}
+
+socket.on('connect', () => {
+  document.getElementById('onlineStatus').textContent = 'リアルタイム同期中';
+});
+socket.on('disconnect', () => {
+  document.getElementById('onlineStatus').textContent = 'オフライン';
+});
+
+// 初期描画
+render();
+</script>
+</body>
+</html>
