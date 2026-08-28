@@ -209,13 +209,16 @@ const INITIAL_MEMBERS = [
   { id: 'tsuchida',      name: '土田',    role: '',          dept: 'baibai' },
 ];
 
-// localStorageから復元、なければ初期値
+// localStorageから復元、なければ初期値（バージョンが変わったらリセット）
 const STORAGE_KEY = 'seat-planner-state';
+const DATA_VERSION = 3;
 let members = loadState() || JSON.parse(JSON.stringify(INITIAL_MEMBERS));
 let dragMemberId = null;
 
 function loadState() {
   try {
+    const ver = localStorage.getItem(STORAGE_KEY + '-ver');
+    if (Number(ver) !== DATA_VERSION) return null;
     const s = localStorage.getItem(STORAGE_KEY);
     return s ? JSON.parse(s) : null;
   } catch { return null; }
@@ -223,6 +226,7 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
+  localStorage.setItem(STORAGE_KEY + '-ver', DATA_VERSION);
 }
 
 function render() {
