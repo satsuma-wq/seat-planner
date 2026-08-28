@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"which render 2>/dev/null; which fly 2>/dev/null; which railway 2>/dev/null; which vercel 2>/dev/null; which netlify 2>/dev/null; which heroku 2>/dev/null\",\"description\":\"Check available de...",
+  "error": "Exit code 1\nrender not found\nfly not found\nrailway not found\nvercel not found\nnetlify not found\nheroku not found",
+  "timestamp": "2026-08-28T02:45:41.676Z",
+  "retry_count": 1
+}

@@ -2,11 +2,5 @@
   "name": "seat-planner",
   "version": "1.0.0",
   "private": true,
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.21.0",
-    "socket.io": "^4.7.5"
-  }
+  "description": "コンサルティング事業部 組織編成ボード（リアルタイム同期）"
 }
