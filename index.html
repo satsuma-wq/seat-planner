@@ -24,29 +24,6 @@
     z-index: 100;
   }
   .header h1 { font-size: 1.1rem; font-weight: 600; }
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-  .status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.8rem;
-    color: #94a3b8;
-  }
-  .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #22c55e;
-    animation: pulse 2s infinite;
-  }
-  .dot.offline { background: #ef4444; animation: none; }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
 
   .board {
     display: flex;
@@ -135,13 +112,6 @@
     opacity: 0.4;
     transform: scale(0.95);
   }
-  .member-card.just-moved {
-    animation: flashCard 0.6s ease;
-  }
-  @keyframes flashCard {
-    0% { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.25); }
-    100% { border-color: #e2e8f0; box-shadow: none; }
-  }
 
   .member-avatar {
     width: 34px;
@@ -201,91 +171,59 @@
 
 <div class="header">
   <h1>組織編成ボード - コンサルティング事業部</h1>
-  <div class="header-right">
-    <div class="status">
-      <div class="dot" id="statusDot"></div>
-      <span id="statusText">接続中...</span>
-    </div>
-  </div>
 </div>
 
 <div class="board" id="board"></div>
 <div class="help-text">メンバーをドラッグして部署間を移動できます</div>
 
-<script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
 <script>
-// Gun.js でリアルタイム同期（サーバー不要）
-const gun = Gun({
-  peers: ['https://gun-manhattan.herokuapp.com/gun'],
-  localStorage: true
-});
-const db = gun.get('reatex-seat-planner-v1');
-
-// 接続状態
-let connected = false;
-setTimeout(() => {
-  connected = true;
-  document.getElementById('statusDot').classList.remove('offline');
-  document.getElementById('statusText').textContent = 'リアルタイム同期中';
-}, 1500);
-
 const DEPARTMENTS = [
   { id: 'asset',   name: 'アセットセールス', color: '#f97316', sub: '' },
-  { id: 'consul1', name: 'コンサル第一',     color: '#2563eb', sub: '' },
-  { id: 'consul2', name: 'コンサル第二',     color: '#16a34a', sub: '' },
-  { id: 'consul3', name: 'コンサル第三',     color: '#9333ea', sub: '仲介 / 買取くん' },
+  { id: 'consul1', name: 'コンサル第一',     color: '#2563eb', sub: '買取くん（即金不動産）+ IS' },
+  { id: 'consul2', name: 'コンサル第二',     color: '#16a34a', sub: 'ポータル' },
+  { id: 'consul3', name: 'コンサル第三',     color: '#9333ea', sub: '仲介' },
   { id: 'baibai',  name: '売買管理',         color: '#0891b2', sub: '' },
-  { id: 'unassigned', name: '未配属',        color: '#94a3b8', sub: '' },
 ];
 
+// スクリーンショットの配置を反映
 const INITIAL_MEMBERS = [
   { id: 'igarashi',      name: '五十嵐',  role: 'Mgr',      dept: 'asset' },
   { id: 'soga',          name: '曽我',    role: '',          dept: 'asset' },
+  { id: 'hayashi_mika',  name: '林美香',  role: '',          dept: 'asset' },
+
   { id: 'tsuruno',       name: '鶴野',    role: 'Mgr',      dept: 'consul1' },
-  { id: 'hayashi_kanan', name: '林花南',  role: '',          dept: 'consul1' },
   { id: 'moriwa',        name: '森岩',    role: '',          dept: 'consul1' },
   { id: 'sato',          name: '佐藤',    role: '',          dept: 'consul1' },
   { id: 'hashimoto',     name: '橋元',    role: '',          dept: 'consul1' },
+  { id: 'nakano',        name: '中野',    role: '',          dept: 'consul1' },
+  { id: 'kimijima',      name: '君島',    role: '',          dept: 'consul1' },
+
   { id: 'satsuma',       name: '薩摩',    role: 'Mgr',      dept: 'consul2' },
-  { id: 'yamashita',     name: '山下',    role: '',          dept: 'consul2' },
-  { id: 'kato',          name: '加藤',    role: '',          dept: 'consul2' },
+  { id: 'yoshizawa',     name: '吉澤',    role: '',          dept: 'consul2' },
+  { id: 'makabe',        name: '眞壁',    role: '',          dept: 'consul2' },
+
   { id: 'komatsu',       name: '小松',    role: 'Mgr',      dept: 'consul3' },
-  { id: 'anaguchi',      name: '穴口',    role: '',          dept: 'consul3' },
-  { id: 'nakano',        name: '中野',    role: '',          dept: 'consul3' },
-  { id: 'kimijima',      name: '君島',    role: '',          dept: 'consul3' },
-  { id: 'hayashi_mika',  name: '林美香',  role: '',          dept: 'baibai' },
+
+  { id: 'hayashi_kanan', name: '林花南',  role: '',          dept: 'baibai' },
+  { id: 'kato',          name: '加藤',    role: 'Mgr',      dept: 'baibai' },
   { id: 'tsuchida',      name: '土田',    role: '',          dept: 'baibai' },
-  { id: 'hishida',       name: '菱田',    role: '',          dept: 'baibai' },
-  { id: 'yoshizawa',     name: '吉澤',    role: '',          dept: 'baibai' },
-  { id: 'makabe',        name: '眞壁',    role: '',          dept: 'baibai' },
-  { id: 'fujiyama',      name: '藤山',    role: '事業部長',  dept: 'unassigned' },
 ];
 
-let members = JSON.parse(JSON.stringify(INITIAL_MEMBERS));
+// localStorageから復元、なければ初期値
+const STORAGE_KEY = 'seat-planner-state';
+let members = loadState() || JSON.parse(JSON.stringify(INITIAL_MEMBERS));
 let dragMemberId = null;
-let isRemoteUpdate = false;
 
-// --- Gun.js リアルタイム同期 ---
-
-// 各メンバーの部署変更を監視
-INITIAL_MEMBERS.forEach(m => {
-  db.get(m.id).on((data) => {
-    if (!data || !data.dept) return;
-    const member = members.find(x => x.id === m.id);
-    if (member && member.dept !== data.dept) {
-      member.dept = data.dept;
-      isRemoteUpdate = true;
-      render();
-    }
-  });
-});
-
-function syncToGun(memberId, dept) {
-  db.get(memberId).put({ dept: dept });
+function loadState() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    return s ? JSON.parse(s) : null;
+  } catch { return null; }
 }
 
-// --- 描画 ---
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
+}
 
 function render() {
   const board = document.getElementById('board');
@@ -318,9 +256,7 @@ function render() {
     body.addEventListener('drop', onDrop);
 
     deptMembers.forEach(m => {
-      const card = createMemberCard(m, dept);
-      if (isRemoteUpdate) card.classList.add('just-moved');
-      body.appendChild(card);
+      body.appendChild(createMemberCard(m, dept));
     });
 
     if (deptMembers.length === 0) {
@@ -333,13 +269,6 @@ function render() {
     col.appendChild(body);
     board.appendChild(col);
   });
-
-  isRemoteUpdate = false;
-
-  // アニメーション解除
-  setTimeout(() => {
-    document.querySelectorAll('.just-moved').forEach(el => el.classList.remove('just-moved'));
-  }, 600);
 }
 
 function createMemberCard(member, dept) {
@@ -374,11 +303,9 @@ function createMemberCard(member, dept) {
   });
 
   // タッチ対応
-  let touchStartY = 0;
   let touchClone = null;
   card.addEventListener('touchstart', (e) => {
     dragMemberId = member.id;
-    touchStartY = e.touches[0].clientY;
     card.classList.add('dragging');
 
     touchClone = card.cloneNode(true);
@@ -397,7 +324,6 @@ function createMemberCard(member, dept) {
       touchClone.style.left = (e.touches[0].clientX - 60) + 'px';
       touchClone.style.top = (e.touches[0].clientY - 30) + 'px';
     }
-    // ドロップ先のハイライト
     const el = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
     document.querySelectorAll('.dept-column').forEach(c => c.classList.remove('drag-over'));
     if (el) {
@@ -422,7 +348,7 @@ function createMemberCard(member, dept) {
         const m = members.find(x => x.id === dragMemberId);
         if (m && m.dept !== targetDept) {
           m.dept = targetDept;
-          syncToGun(m.id, targetDept);
+          saveState();
           render();
         }
       }
@@ -457,14 +383,13 @@ function onDrop(e) {
   const member = members.find(m => m.id === memberId);
   if (member && member.dept !== targetDept) {
     member.dept = targetDept;
-    syncToGun(member.id, targetDept);
+    saveState();
     render();
   }
   document.querySelectorAll('.dept-column').forEach(c => c.classList.remove('drag-over'));
   document.querySelectorAll('.dept-body').forEach(b => b.classList.remove('drag-over-body'));
 }
 
-// 初期描画
 render();
 </script>
 </body>
