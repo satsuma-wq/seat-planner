@@ -25,6 +25,9 @@
   }
   .header h1 { font-size: 1.1rem; font-weight: 600; }
 
+  .board-wrapper {
+    position: relative;
+  }
   .board {
     display: flex;
     gap: 16px;
@@ -32,6 +35,26 @@
     overflow-x: auto;
     min-height: auto;
     align-items: flex-start;
+  }
+  .connections-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .conn-label {
+    font-size: 10px;
+    font-weight: 600;
+    fill: #fff;
+    pointer-events: none;
+  }
+  .conn-label-bg {
+    rx: 8;
+    ry: 8;
+    pointer-events: none;
   }
 
   .dept-column {
@@ -282,7 +305,10 @@
   <h1>組織編成ボード - コンサルティング事業部</h1>
 </div>
 
+<div class="board-wrapper">
 <div class="board" id="board"></div>
+<svg class="connections-svg" id="connectionsSvg"></svg>
+</div>
 <div class="help-text">メンバーをドラッグして部署間を移動できます</div>
 
 <div class="minutes-section">
@@ -616,7 +642,146 @@ function onDrop(e) {
   document.querySelectorAll('.dept-body').forEach(b => b.classList.remove('drag-over-body'));
 }
 
+// 連携・フォロー関係の定義
+const CONNECTIONS = [
+  { from: 'komatsu', to: 'consul1', label: '買取くんフォロー', color: '#9333ea', type: 'member-to-dept' },
+  { from: 'makabe',  to: 'komatsu', label: '連携', color: '#16a34a', type: 'member-to-member' },
+  { from: 'satsuma', to: 'komatsu', label: '案件パス', color: '#16a34a', type: 'member-to-member' },
+  { from: 'consul1', to: 'igarashi', label: '案件→販売', color: '#f97316', type: 'dept-to-member' },
+  { from: 'consul2', to: 'igarashi', label: '案件→販売', color: '#f97316', type: 'dept-to-member' },
+  { from: 'consul3', to: 'igarashi', label: '案件→販売', color: '#f97316', type: 'dept-to-member' },
+];
+
+function drawConnections() {
+  const svg = document.getElementById('connectionsSvg');
+  const wrapper = document.querySelector('.board-wrapper');
+  const board = document.getElementById('board');
+
+  // SVGサイズをboard-wrapperに合わせる
+  svg.setAttribute('width', wrapper.offsetWidth);
+  svg.setAttribute('height', wrapper.offsetHeight);
+  svg.innerHTML = '';
+
+  // arrowheadマーカー定義
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  CONNECTIONS.forEach((conn, i) => {
+    const marker = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    marker.setAttribute('id', 'arrow-' + i);
+    marker.setAttribute('viewBox', '0 0 10 10');
+    marker.setAttribute('refX', '8');
+    marker.setAttribute('refY', '5');
+    marker.setAttribute('markerWidth', '6');
+    marker.setAttribute('markerHeight', '6');
+    marker.setAttribute('orient', 'auto-start-reverse');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+    path.setAttribute('fill', conn.color);
+    marker.appendChild(path);
+    defs.appendChild(marker);
+  });
+  svg.appendChild(defs);
+
+  const wrapperRect = wrapper.getBoundingClientRect();
+
+  function getCardCenter(memberId) {
+    const card = board.querySelector(`[data-member-id="${memberId}"]`);
+    if (!card) return null;
+    const r = card.getBoundingClientRect();
+    return { x: r.left + r.width / 2 - wrapperRect.left, y: r.top + r.height / 2 - wrapperRect.top };
+  }
+
+  function getDeptEdge(deptId, side) {
+    const col = board.querySelector(`[data-dept-id="${deptId}"]`);
+    if (!col) return null;
+    const r = col.getBoundingClientRect();
+    if (side === 'right') return { x: r.right - wrapperRect.left, y: r.top + r.height / 2 - wrapperRect.top };
+    if (side === 'left') return { x: r.left - wrapperRect.left, y: r.top + r.height / 2 - wrapperRect.top };
+    return { x: r.left + r.width / 2 - wrapperRect.left, y: r.bottom - wrapperRect.top };
+  }
+
+  CONNECTIONS.forEach((conn, i) => {
+    let startPt, endPt;
+
+    if (conn.type === 'member-to-dept') {
+      startPt = getCardCenter(conn.from);
+      endPt = getDeptEdge(conn.to, 'right');
+      if (startPt && endPt && startPt.x < endPt.x) endPt = getDeptEdge(conn.to, 'right');
+      else if (startPt && endPt) endPt = getDeptEdge(conn.to, 'left');
+    } else if (conn.type === 'dept-to-member') {
+      endPt = getCardCenter(conn.to);
+      startPt = getDeptEdge(conn.from, 'right');
+      if (startPt && endPt && endPt.x < startPt.x) startPt = getDeptEdge(conn.from, 'left');
+    } else {
+      startPt = getCardCenter(conn.from);
+      endPt = getCardCenter(conn.to);
+    }
+
+    if (!startPt || !endPt) return;
+
+    // カード端から出るようにオフセット
+    const dx = endPt.x - startPt.x;
+    const dy = endPt.y - startPt.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 10) return;
+
+    // 曲線の制御点（下に膨らむ）
+    const midX = (startPt.x + endPt.x) / 2;
+    const midY = (startPt.y + endPt.y) / 2;
+    const bulge = Math.min(60, dist * 0.3);
+    // 横移動が主なら下に膨らむ、縦移動が主なら横に膨らむ
+    let cpX, cpY;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      cpX = midX;
+      cpY = midY + bulge;
+    } else {
+      cpX = midX + (dx > 0 ? -bulge : bulge);
+      cpY = midY;
+    }
+
+    // パス描画
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', `M ${startPt.x} ${startPt.y} Q ${cpX} ${cpY} ${endPt.x} ${endPt.y}`);
+    path.setAttribute('stroke', conn.color);
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-dasharray', '6 3');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('opacity', '0.7');
+    path.setAttribute('marker-end', `url(#arrow-${i})`);
+    svg.appendChild(path);
+
+    // ラベル
+    const labelX = cpX;
+    const labelY = cpY;
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.textContent = conn.label;
+    text.setAttribute('x', labelX);
+    text.setAttribute('y', labelY + 4);
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('class', 'conn-label');
+    text.setAttribute('font-size', '10');
+    // 背景を先に描画
+    svg.appendChild(text);
+    const bbox = text.getBBox();
+    const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bg.setAttribute('x', bbox.x - 6);
+    bg.setAttribute('y', bbox.y - 2);
+    bg.setAttribute('width', bbox.width + 12);
+    bg.setAttribute('height', bbox.height + 4);
+    bg.setAttribute('fill', conn.color);
+    bg.setAttribute('opacity', '0.85');
+    bg.setAttribute('class', 'conn-label-bg');
+    svg.insertBefore(bg, text);
+  });
+}
+
 render();
+// 初回描画後に矢印を描画
+requestAnimationFrame(() => drawConnections());
+window.addEventListener('resize', () => drawConnections());
+
+// render後に矢印を再描画するよう元のrenderをラップ
+const _origRender = render;
+render = function() { _origRender(); requestAnimationFrame(() => drawConnections()); };
 </script>
 </body>
 </html>
