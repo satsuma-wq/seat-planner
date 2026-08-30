@@ -644,9 +644,9 @@ function onDrop(e) {
 
 // 連携・フォロー関係の定義
 const CONNECTIONS = [
-  { from: 'komatsu', to: 'consul1', label: '買取くんフォロー', color: '#9333ea', type: 'member-to-dept' },
+  { from: 'komatsu', to: 'tsuruno', label: '買取くんフォロー', color: '#9333ea', type: 'member-to-member' },
   { from: 'makabe',  to: 'komatsu', label: '連携', color: '#16a34a', type: 'member-to-member' },
-  { from: 'satsuma', to: 'komatsu', label: '案件パス', color: '#16a34a', type: 'member-to-member' },
+  { from: 'satsuma', to: 'komatsu', label: '仲介案件パス', color: '#16a34a', type: 'member-to-member' },
   { from: 'consul1', to: 'igarashi', label: '案件→販売', color: '#f97316', type: 'dept-to-member' },
   { from: 'consul2', to: 'igarashi', label: '案件→販売', color: '#f97316', type: 'dept-to-member' },
   { from: 'consul3', to: 'igarashi', label: '案件→販売', color: '#f97316', type: 'dept-to-member' },
