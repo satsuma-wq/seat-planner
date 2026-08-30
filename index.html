@@ -165,6 +165,115 @@
     opacity: 0.8;
     pointer-events: none;
   }
+
+  /* ミーティング議事録 */
+  .minutes-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+  .minutes-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .minutes-header h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .minutes-date {
+    font-size: 0.78rem;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+  .agenda-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .agenda-item {
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+  }
+  .agenda-item-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: #f8fafc;
+    cursor: pointer;
+    user-select: none;
+  }
+  .agenda-item-header:hover {
+    background: #f1f5f9;
+  }
+  .agenda-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .agenda-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+    flex: 1;
+  }
+  .agenda-toggle {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+  }
+  .agenda-item.open .agenda-toggle {
+    transform: rotate(180deg);
+  }
+  .agenda-body {
+    display: none;
+    padding: 0 16px 16px;
+    font-size: 0.84rem;
+    color: #334155;
+    line-height: 1.7;
+  }
+  .agenda-item.open .agenda-body {
+    display: block;
+  }
+  .agenda-body ul {
+    list-style: disc;
+    padding-left: 20px;
+    margin-top: 8px;
+  }
+  .agenda-body ul li {
+    margin-bottom: 6px;
+  }
+  .agenda-body .key-point {
+    color: #dc2626;
+    font-weight: 600;
+  }
+  .agenda-body .person-tag {
+    display: inline-block;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 1px 8px;
+    border-radius: 10px;
+    margin-right: 4px;
+  }
 </style>
 </head>
 <body>
@@ -175,6 +284,119 @@
 
 <div class="board" id="board"></div>
 <div class="help-text">メンバーをドラッグして部署間を移動できます</div>
+
+<div class="minutes-section">
+  <div class="minutes-header">
+    <h2>ミーティング議事録・アジェンダ</h2>
+    <span class="minutes-date">2026年8月30日</span>
+  </div>
+
+  <ul class="agenda-list">
+    <li class="agenda-item open">
+      <div class="agenda-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="agenda-num" style="background:#9333ea">1</div>
+        <div class="agenda-title">コンサル第3（仲介事業部）の立ち上げ</div>
+        <div class="agenda-toggle">▼</div>
+      </div>
+      <div class="agenda-body">
+        <ul>
+          <li><span class="person-tag">小松</span>仲介として第3事業部の立ち上げを行う</li>
+          <li>今まで第2で追い切れていなかった仲介案件も拾う。<span class="person-tag">薩摩</span>がメインで入ってパスしていくので、薩摩または<span class="person-tag">眞壁</span>と連携して第2の案件も第3仲介事業部でガンガン紹介する</li>
+          <li><span class="key-point">とにかくスピードを上げて数をこなして紹介していくことを重要視</span>。小松さんの方で実際に概要書を作成したり、みらいえへ登録・配信したりなど、眞壁さんと連携してスピーディーに対応する</li>
+          <li>「買取くん」のフォローにも入る</li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="agenda-item open">
+      <div class="agenda-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="agenda-num" style="background:#16a34a">2</div>
+        <div class="agenda-title">コンサル第2の体制</div>
+        <div class="agenda-toggle">▼</div>
+      </div>
+      <div class="agenda-body">
+        <ul>
+          <li><span class="person-tag">薩摩</span>が全面的に見る</li>
+          <li><span class="person-tag">眞壁</span>は第2のメインとして、薩摩と一緒に動く</li>
+          <li><span class="person-tag">吉澤</span>はRKCの責任者となり、主にRKCの数字を追う</li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="agenda-item open">
+      <div class="agenda-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="agenda-num" style="background:#2563eb">3</div>
+        <div class="agenda-title">コンサル第1の体制</div>
+        <div class="agenda-toggle">▼</div>
+      </div>
+      <div class="agenda-body">
+        <ul>
+          <li><span class="person-tag">鶴野</span>が担当。「買取くん」の対応を行う</li>
+          <li><span class="key-point">「買取くん」はスピードが命 — フォームから依頼が来たら5分以内に対応する必要がある</span>（一括査定と同様）</li>
+          <li><span class="person-tag">小松</span>もフォローに入る</li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="agenda-item open">
+      <div class="agenda-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="agenda-num" style="background:#f97316">4</div>
+        <div class="agenda-title">アセットセールスチームの方針</div>
+        <div class="agenda-toggle">▼</div>
+      </div>
+      <div class="agenda-body">
+        <ul>
+          <li>当初は全部縦割りにしてコンサル第4として五十嵐さんにお願いしようかと思ったが、<span class="key-point">このまま残す形にする</span></li>
+          <li><span class="person-tag">五十嵐</span>には、コンサル第1・第2で出たもの、場合によってはコンサル第3で出たものに関しても、責任を持って積極的に販売してほしい</li>
+          <li>全体のコントロールもそうだが、<span class="key-point">これまで以上に販売に注力する</span>（例：顧客との定期面談の設定、アプローチの強化、信頼関係の構築による顧客増加などの施策を立てる）</li>
+          <li>もちろん仕入れも大事だが、どんな案件でも売るという意思を持って取り組んでほしい</li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="agenda-item open">
+      <div class="agenda-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="agenda-num" style="background:#0891b2">5</div>
+        <div class="agenda-title">リアサポの体制</div>
+        <div class="agenda-toggle">▼</div>
+      </div>
+      <div class="agenda-body">
+        <ul>
+          <li>鶴野さんの1人対応となっているが、領域が広いため<span class="key-point">マネージャー全員で対応する</span></li>
+          <li>LINE対応や面談対応なども持ち回りなどで分担する</li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="agenda-item open">
+      <div class="agenda-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="agenda-num" style="background:#6366f1">6</div>
+        <div class="agenda-title">広告戦略とRKCの重要性</div>
+        <div class="agenda-toggle">▼</div>
+      </div>
+      <div class="agenda-body">
+        <ul>
+          <li>広告はYJJ・RKCにも分散して展開していく方針</li>
+          <li><span class="key-point">RKCの重要性が非常に高まっている</span> — 広告分散により、RKCチャネルの強化が事業成長の鍵となる</li>
+        </ul>
+      </div>
+    </li>
+
+    <li class="agenda-item open">
+      <div class="agenda-item-header" onclick="this.parentElement.classList.toggle('open')">
+        <div class="agenda-num" style="background:#e11d48">7</div>
+        <div class="agenda-title">Claude アカウントの全員発行</div>
+        <div class="agenda-toggle">▼</div>
+      </div>
+      <div class="agenda-body">
+        <ul>
+          <li><span class="key-point">リアテクスメンバー全員にClaudeのアカウントを発行する</span></li>
+          <li>AI活用を全社的に推進し、業務効率化・生産性向上を図る</li>
+        </ul>
+      </div>
+    </li>
+  </ul>
+</div>
 
 <script>
 const DEPARTMENTS = [
