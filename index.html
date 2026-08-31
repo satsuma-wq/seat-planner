@@ -446,7 +446,7 @@ const DEPARTMENTS = [
   { id: 'consul2', name: 'コンサル第二',     color: '#16a34a', sub: 'ポータル' },
   { id: 'consul3', name: 'コンサル第三',     color: '#9333ea', sub: '仲介' },
   { id: 'asset',   name: 'アセットセールス', color: '#f97316', sub: '' },
-  { id: 'baibai',  name: 'リアサポ',         color: '#0891b2', sub: '' },
+  { id: 'baibai',  name: '売買管理グループ',   color: '#0891b2', sub: '' },
 ];
 
 // スクリーンショットの配置を反映
@@ -468,14 +468,14 @@ const INITIAL_MEMBERS = [
 
   { id: 'komatsu',       name: '小松',    role: 'Mgr',      dept: 'consul3' },
 
-  { id: 'hayashi_kanan', name: '林花南',  role: '',          dept: 'baibai' },
   { id: 'kato',          name: '加藤',    role: 'Mgr',      dept: 'baibai' },
+  { id: 'hayashi_kanan', name: '林花南',  role: '融資担当',    dept: 'baibai' },
   { id: 'tsuchida',      name: '土田',    role: '',          dept: 'baibai' },
 ];
 
 // localStorageから復元、なければ初期値（バージョンが変わったらリセット）
 const STORAGE_KEY = 'seat-planner-state';
-const DATA_VERSION = 4;
+const DATA_VERSION = 5;
 let members = loadState() || JSON.parse(JSON.stringify(INITIAL_MEMBERS));
 let dragMemberId = null;
 
