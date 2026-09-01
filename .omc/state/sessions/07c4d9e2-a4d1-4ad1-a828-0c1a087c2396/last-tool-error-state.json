@@ -1,0 +1,7 @@
+{
+  "tool_name": "mcp__claude_ai_UseAI_Studio__send_lw_message",
+  "tool_input_preview": "{\"channel_id\":\"6cadc477-ba64-400c-3c48-95a1f316ed9f\",\"mentions\":[\"all\"],\"text\":\"【コンサルティング事業部 体制変更・方針共有】\\n\\nマネージャーの皆さまへ、本日の打ち合わせ内容を共有します。\\n詳細は明日の定例ミーティングでも説明しますので、まずは目を通しておいてください。\\n\\n■ 事業戦略の方向性\\n\\n・第1事...",
+  "error": "fetch failed",
+  "timestamp": "2026-08-31T04:54:46.430Z",
+  "retry_count": 1
+}
